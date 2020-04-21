@@ -1,7 +1,7 @@
 import os
 
 if os.name == 'nt':
-    print('windows found')
+    print('operating system --windows')
     from win10toast import ToastNotifier
 
     # One-time initialization
@@ -18,8 +18,8 @@ if os.name == 'nt':
             print('unable to create notification windows')        
 
 elif os.name == 'posix':
-    print('linux')  
+    print('operating system --linux')  
     import subprocess
-    def msg(title,message,icon=None):
+    def msg(title,message,icon="face-smile"):
         subprocess.Popen(['notify-send', title, '-i', icon, message])
         return  

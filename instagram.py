@@ -51,7 +51,7 @@ class InstaBot():
         login_btn= self.driver.find_element_by_xpath(r'//button//div[text() = "Log In"]')
 
         login_btn.click()
-        
+        #notification.msg('Alert!','Login success full')
         # pop_up = self.driver.find_element_by_xpath('//div[text()="Know right away when people follow you or like and comment on your photos."]')
         
         WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.XPATH, r'//button[text() = "Not Now"]')))
@@ -64,8 +64,10 @@ class InstaBot():
         #ExplorePage = '/explore/'
         #AccountActivity = '/accounts/activity/'
        
-
-        
+    def quit(self):
+        self.driver.close()
+        print("System down -- Successfull")
+        notification.msg('Alert!','System down -- Successfull')
 
 
 if __name__ == '__main__':
@@ -78,7 +80,7 @@ if __name__ == '__main__':
         
     bot=InstaBot()
     bot.login()
-    notification.msg('Alert!','login success full')
-
+    
+    #bot.quit()
     #bot.like_latest_posts('johngfisher', 2, like=True)
 #kholke_to_dekho

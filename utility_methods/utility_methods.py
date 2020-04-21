@@ -1,7 +1,7 @@
 import configparser
 import functools
 import logging
-import time
+import time,os
 
 
 def init_config(config_file_path):
@@ -63,7 +63,7 @@ def exception(func):
     return wrapper
 
 
-def insta_method(func):
+def insta_method(func): 
     """
     Instagram method decorator. Sleeps for 2 seconds before and after calling any methods that interact with Instagram.
     Args:
@@ -79,3 +79,10 @@ def insta_method(func):
         time.sleep(2)
 
     return wrapper
+
+
+
+def check_dir(directory):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    return directory    
