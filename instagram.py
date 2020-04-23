@@ -5,6 +5,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 import time
 from utility_methods.utility_methods import *
+from content.contentcollector import collector,contentadd
 import urllib.request
 import os
 import notification
@@ -76,10 +77,9 @@ if __name__ == '__main__':
     logger_file_path = './bot.log'
     config = init_config(config_file_path)
     logger = get_logger(logger_file_path)
-
-        
-    bot=InstaBot()
-    bot.login()
+    
+    # bot=InstaBot()
+    # bot.login()
     
     #bot.quit()
     #bot.like_latest_posts('johngfisher', 2, like=True)

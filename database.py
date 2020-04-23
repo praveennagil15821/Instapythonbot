@@ -4,17 +4,9 @@ from utility_methods.utility_methods import *
 
 base_dir=check_dir('./database/')
 
-
-class TargetUsers():
-
-    def __init__(self):
-        self.file=base_dir+'target_users'+".csv"
-        self.columns = ['user', 'acctype', 'priority']      
-        self.df=pd.DataFrame(columns=self.columns)  
-        self.df.set_index('user', inplace=True)          
-        self.df.to_csv(self.file, mode='a',index=True, header=(not os.path.exists(self.file)))
-        
-    def add(self,username,acctype):      
+class super:
+    
+    def add(self,username,acctype='None'):      
         read=pd.read_csv(self.file)        
         if (username in read.user.values):            
             read.loc[read.user == username,'priority']=int(read.loc[read.user == username].priority.values[0]+1)
@@ -26,7 +18,7 @@ class TargetUsers():
                 'acctype':[acctype],                        
                 'priority':[1]
             }
-            read=pd.DataFrame(data,columns=self.columns)
+            read=pd.DataFrame(data)
             read.set_index('user', inplace=True)            
             read.to_csv(self.file,mode='a',index=True, header=False)
 
@@ -34,7 +26,7 @@ class TargetUsers():
         read=pd.read_csv(self.file)
         read.sort_values(['priority'],ascending=False, inplace=True)
         return list(read.user.values)
-        
+
     def remove(self,username):
         read=pd.read_csv(self.file) 
         read.set_index('user', inplace=True)   
@@ -47,18 +39,48 @@ class TargetUsers():
             #read.set_index('user', inplace=True) 
             read.to_csv(self.file,mode='w',index=True, header=True)
         else:
-            print('notfound')
+            print('notfound')    
+        
+    
+
+class TargetUsers(super):
+
+    def __init__(self):
+        self.file=base_dir+'target_users'+".csv"
+        self.columns = ['user', 'acctype', 'priority']      
+        self.df=pd.DataFrame(columns=self.columns)  
+        self.df.set_index('user', inplace=True)          
+        self.df.to_csv(self.file, mode='a',index=True, header=(not os.path.exists(self.file)))
+        
+    
+        
         
 
 
+class ContentLabours(super):
+    def __init__(self):
+        self.file=base_dir+'content_labours'+".csv"
+        self.columns = ['user', 'acctype', 'priority']      
+        self.df=pd.DataFrame(columns=self.columns)  
+        self.df.set_index('user', inplace=True)          
+        self.df.to_csv(self.file, mode='a',index=True, header=(not os.path.exists(self.file)))
+
+    
+
+   
         
 if __name__ == "__main__":
-    print(TargetUsers().get_users())
-    # a.add('pankaj_nagil','Public')
+    print('ok')
+    a=ContentLabours()
+    a.add('pankaj_nagil','Public')
+    ContentLabours().remove('pankaj_nagil')
+    
+    #print(TargetUsers().get_users())
+    TargetUsers().add('pankaj_nagil','Public')
     #TargetUsers().remove(['stoned_bhaiya','pankaj_l'])
     # a.add('stoned_bhaiya','Public')
-    # b=TargetUsers()
-    # b.add('pankaj_l','Public')
-    # b.add('stoned_a','Private')
+    b=TargetUsers()
+    b.add('pankaj_l','Public')
+    b.add('stoned_a','Private')
 
 
