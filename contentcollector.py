@@ -19,7 +19,7 @@ def addfew(username):
         instaloader.Instaloader().download_profile(username,fast_update=True)
     except:
         L=instaloader.Instaloader()
-        L.login('terabhaijitega@gmail.com','king15821')
+        L.login()
         L.download_profile(username,fast_update=True)
     else:
         print('dono bekar')   
