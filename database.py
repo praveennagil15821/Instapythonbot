@@ -94,13 +94,20 @@ class ContentLabours(super):
         self.df.set_index('user', inplace=True)          
         self.df.to_csv(self.file, mode='a',index=True, header=(not os.path.exists(self.file)))
 
- 
+class TagList(super):
+    
+    def __init__(self):
+        self.file=base_dir+'tag_list'+".csv"
+        self.columns = ['user']     
+        self.df=pd.DataFrame(columns=self.columns)  
+        self.df.set_index('user', inplace=True)          
+        self.df.to_csv(self.file, mode='a',index=True, header=(not os.path.exists(self.file))) 
    
         
 if __name__ == "__main__":
     print('ok')
-    #a=TargetList()
-    #a.add(['kholke_to_dekho'])
+    a=TagList()
+    a.add(['memers','memer'])
     #print(a.get_users())
     # a.add('pankaj_nagil','Public')
     # ContentLabours().remove('pankaj_nagil')

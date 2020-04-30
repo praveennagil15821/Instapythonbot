@@ -111,7 +111,7 @@ class InstaBot():
         self.driver.get(self.nav_user_url.format(username))
         
         #try:
-        #posts = self.wait.until(EC.presence_of_element_located((By.XPATH, "//li/span[text()=' posts')]/span"))).text
+        posts = self.wait.until(EC.presence_of_element_located((By.XPATH, '//li/span[text()=" posts"]/span'))).text
         # except:
         #     posts = self.wait.until(EC.presence_of_element_located((By.XPATH, '//li/span[text()=" post"]/span'))).text
         try:
@@ -157,12 +157,15 @@ class InstaBot():
     def hit(self):
         target=database.TargetList().get_users()
         followers=self.account_details(self.mainuser)['followers']
+        hit=database.HitList().get_users()
+        followers.extend(hit)
         for i in target[:3]:
             if i in followers:
                 database.HitList().add(i)
                 database.TargetList().remove(i)
                 continue
             acc=self.account_details(i)
+             
             if acc=='Private':
                 print('acc is private')
                 database.PrivateList().add(i)
@@ -171,9 +174,10 @@ class InstaBot():
             else:
                 users=acc['followers']
                 users.extend(acc['following'])
+                database.TargetList().remove(i)
                 database.TargetList().add(users)
                 database.HitList().add(i)
-                database.TargetList().remove(i)
+                
 
              
         
@@ -187,7 +191,7 @@ if __name__ == '__main__':
     logger_file_path = './bot.log'
     config = init_config(config_file_path)
     logger = get_logger(logger_file_path)
-    bot=InstaBot()
+    bot=InstaBot('terabhaijitega@gmail.com','king15821')
     #print(bot.absolute('36.2m'))
     bot.login()
     #database.TargetList().add('pankaj_nagil')
