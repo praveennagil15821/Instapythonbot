@@ -2,7 +2,7 @@ import os
 import pandas as pd
 from utility_methods.utility_methods import *
 
-base_dir=check_dir('./database/')
+
 
 class super:    
 
@@ -51,8 +51,10 @@ class super:
 
 class TargetList(super):
 
-    def __init__(self):
-        self.file=base_dir+'target_list'+".csv"
+    def __init__(self,username):
+        self.username=username
+        self.base_dir=check_dir(f'./database/{self.username}/')
+        self.file=self.base_dir+ 'target_list'+".csv"
         self.columns = ['user']     
         self.df=pd.DataFrame(columns=self.columns)  
         self.df.set_index('user', inplace=True)          
@@ -61,8 +63,10 @@ class TargetList(super):
 
 class HitList(super):
 
-    def __init__(self):
-        self.file=base_dir+'hit_list'+".csv"
+    def __init__(self,username):
+        self.username=username
+        self.base_dir=check_dir(f'./database/{self.username}/')
+        self.file=self.base_dir+'hit_list'+".csv"
         self.columns = ['user']     
         self.df=pd.DataFrame(columns=self.columns)  
         self.df.set_index('user', inplace=True)          
@@ -70,8 +74,10 @@ class HitList(super):
 
 class FameList(super):
     
-    def __init__(self):
-        self.file=base_dir+'fame_list'+".csv"
+    def __init__(self,username):
+        self.username=username
+        self.base_dir=check_dir(f'./database/{self.username}/')
+        self.file=self.base_dir+'fame_list'+".csv"
         self.columns = ['user']     
         self.df=pd.DataFrame(columns=self.columns)  
         self.df.set_index('user', inplace=True)          
@@ -79,16 +85,20 @@ class FameList(super):
         
 class PrivateList(super):
     
-    def __init__(self):
-        self.file=base_dir+'private_list'+".csv"
+    def __init__(self,username):
+        self.username=username
+        self.base_dir=check_dir(f'./database/{self.username}/')
+        self.file=self.base_dir+'private_list'+".csv"
         self.columns = ['user']     
         self.df=pd.DataFrame(columns=self.columns)  
         self.df.set_index('user', inplace=True)          
         self.df.to_csv(self.file, mode='a',index=True, header=(not os.path.exists(self.file)))            
  
 class ContentLabours(super):
-    def __init__(self):
-        self.file=base_dir+'content_labours'+".csv"
+    def __init__(self,username):
+        self.username=username
+        self.base_dir=check_dir(f'./database/{self.username}/')
+        self.file=self.base_dir+'content_labours'+".csv"
         self.columns = ['user']     
         self.df=pd.DataFrame(columns=self.columns)  
         self.df.set_index('user', inplace=True)          
@@ -96,28 +106,66 @@ class ContentLabours(super):
 
 class TagList(super):
     
-    def __init__(self):
-        self.file=base_dir+'tag_list'+".csv"
+    def __init__(self,username):
+        self.username=username
+        self.base_dir=check_dir(f'./database/{self.username}/')
+        self.file=self.base_dir+'tag_list'+".csv"
         self.columns = ['user']     
         self.df=pd.DataFrame(columns=self.columns)  
         self.df.set_index('user', inplace=True)          
         self.df.to_csv(self.file, mode='a',index=True, header=(not os.path.exists(self.file))) 
    
-        
-if __name__ == "__main__":
-    print('ok')
-    a=TagList()
-    a.add(['memers','memer'])
-    #print(a.get_users())
-    # a.add('pankaj_nagil','Public')
-    # ContentLabours().remove('pankaj_nagil')
+class Profile:
+
+    def __init__(self):
+        self.base_dir=check_dir(f'./database/')
+        self.file=self.base_dir+'profiles'+".csv"
+        self.columns = ['user','password']     
+        self.df=pd.DataFrame(columns=self.columns)  
+        self.df.set_index('user', inplace=True)          
+        self.df.to_csv(self.file, mode='a',index=True, header=(not os.path.exists(self.file))) 
+
+    def add(self,user,password):
+        read=pd.read_csv(self.file) 
+        read.set_index('user', inplace=True)   
+        if (user in read.index.values):
+            return 'exist'
+
+        else:
+            data={
+                'user':[user],
+                'password':[password],
+            }
+            df=pd.DataFrame(data)
+            df.set_index('user', inplace=True)            
+            df.to_csv(self.file,mode='a',index=True, header=False)
+            return True
     
-    # #print(TargetUsers().get_users())
-    # TargetUsers().add(['pankaj_nagil','khaoll'],['public','private'])
-    # #TargetUsers().remove(['stoned_bhaiya','pankaj_l'])
-    # # a.add('stoned_bhaiya','Public')
-    # b=TargetUsers()
-    # b.add('pankaj_l','Public')
-    # b.add('stoned_a','Private')
+    def remove(self,user):
+        read=pd.read_csv(self.file) 
+        read.set_index('user', inplace=True)   
+        if (user in read.index.values):
+            read.drop(user,inplace=True)
+            #read.set_index('user', inplace=True) 
+            read.to_csv(self.file,mode='w',index=True, header=True)
+            dir=self.base_dir+user
+            remove_dir(dir)
+            return True
+        else:
+            return False
+
+    def get_users(self):
+        read=pd.read_csv(self.file)
+        #read.set_index('user',inplace=True)
+        data=[]
+        for u,p in zip(list(read.user.values),list(read.password.values)):
+            data.append({'username':u,'password':p})
+        return data
+    def get_profiles(self):
+        read=pd.read_csv(self.file)
+        #read.set_index('user',inplace=True)
+        return list(read.user.values)
+
+
 
 

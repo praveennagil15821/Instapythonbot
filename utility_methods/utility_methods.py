@@ -2,7 +2,7 @@ import configparser
 import functools
 import logging
 import time,os
-
+import shutil
 
 def init_config(config_file_path):
     """
@@ -85,4 +85,8 @@ def insta_method(func):
 def check_dir(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
-    return directory    
+    return directory  
+def remove_dir(directory):
+    if os.path.exists(directory):
+        shutil.rmtree(directory)
+    return False

@@ -1,5 +1,4 @@
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
@@ -16,15 +15,15 @@ class InstaBot():
 
     def __init__(self, username=None, password=None):
 
-        self.username = username or config['IG_AUTH']['USERNAME']
-        self.password = password or config['IG_AUTH']['PASSWORD']
+        self.username = username 
+        self.password = password 
 
-        self.login_url = config['IG_URLS']['LOGIN']
-        self.home_url = config['IG_URLS']['HOME']
-        self.nav_user_url = config['IG_URLS']['NAV_USER']
-        self.get_tag_url = config['IG_URLS']['SEARCH_TAGS']
-        self.suggested_user_url = config['IG_URLS']['SUG_USER']
-        self.mainuser = 'stoned_bhaiya'
+        self.login_url = 'https://www.instagram.com/accounts/login/'
+        self.home_url = 'https://www.instagram.com/'
+        self.nav_user_url = 'https://www.instagram.com/{}/'
+        self.get_tag_url = 'https://www.instagram.com/explore/tags/{}/'
+        self.suggested_user_url = 'https://www.instagram.com/explore/people/suggested/'
+        self.mainuser = username
         self.x_path = ''
         self.driver = webdriver.Chrome()
         self.wait = WebDriverWait(self.driver, 15)
@@ -58,7 +57,7 @@ class InstaBot():
             (By.XPATH, r'//button//div[text() = "Log In"]')))
         login_btn = self.driver.find_element_by_xpath(
             r'//button//div[text() = "Log In"]')
-
+        
         login_btn.click()
         # notification.msg('Alert!','Login success full')
         # pop_up = self.driver.find_element_by_xpath('//div[text()="Know right away when people follow you or like and comment on your photos."]')
@@ -76,8 +75,12 @@ class InstaBot():
 
     def exploretags(self):
         self.timepass=True
-        tags=database.TagList().get_users()
-        for tag in tags:
+        tags=database.TagList(self.username).get_users()
+        shuffle(tags)
+        tags.reverse()
+        shuffle(tags)
+        till=randint(3,6)
+        for tag in tags[:till]:
             self.driver.get(self.get_tag_url.format(tag))
             self.post(amount=randint(5,8))
 
@@ -134,7 +137,7 @@ class InstaBot():
     def GrabSuggested(self):
         self.driver.get(self.suggested_user_url)
         self.x_path = '//main//img[contains(@alt,profile)]'
-        database.TargetList.add(self.grabpopup())
+        database.TargetList(self.username).add(self.grabpopup())
 
     def stories(self, username):
         self.driver.get(self.nav_user_url.format(username))
@@ -143,10 +146,12 @@ class InstaBot():
         self.driver.find_element_by_xpath('//header//img').click()
         time.sleep(2)
         if self.driver.current_url == self.nav_user_url.format(username):
-            print('no story detected')
+            print("@@@                 ")
+            print(f'@@@ ---- no story detected  @ {username} ')
             return 0
         else:
-            print(f'watching {username} story')
+            print("@@@                 ")
+            print(f'@@@ ---- watching @ {username} story')
             time.sleep(7)
             self.driver.get(self.nav_user_url.format(username))
 
@@ -154,6 +159,8 @@ class InstaBot():
         try:            
             WebDriverWait(self.driver, 5).until(EC.presence_of_element_located(
                 (By.XPATH, r'//article//button[text()=" others" or text()=" likes"]')))
+            print("@@@                 ")
+            print("@@@     Grabbing post likes            ")
             self.driver.find_element_by_xpath(
                 r'//article//button[text()=" others" or text()=" likes"]').click() 
             self.x_path = '//div[@role="presentation"]//img[contains(@alt,profile)]'
@@ -162,7 +169,8 @@ class InstaBot():
             self.driver.find_element_by_xpath(r'//div[@role="presentation"]//button/*[name()="svg"][@aria-label="Close"]').click()
             return True
         except:
-            print('error in grablikes xpath')
+            print("@@@                 ")
+            print('@@@ ***\terror in grablikes xpath\t***')
         
 
     def post(self,amount=5):
@@ -233,7 +241,8 @@ class InstaBot():
                     time.sleep(randint(0,1))
                     like.click()
                 else:
-                    print(f'same user comment {comment} will skip like')    
+                    print("@@@                 ")
+                    print(f'@@@ $$$\tsame user comment {comment} will skip like\t$$$')    
 
 
         def like_pic(driver,liked_comment,first):
@@ -301,9 +310,11 @@ class InstaBot():
                                 if (len(comment_hearts)!=0):
                                     like_comments(self.driver,comment_hearts,liked_comment)
                     else:
-                        print('something is wrong with like_pic()')
+                        print("@@@                 ")
+                        print('@@@ ***\tSomething is wrong with like_pic()\t***')
             except:
-                print('link may be broken or timeout')
+                print("@@@                 ")
+                print('@@@ ***\tlink may be broken or timeout\t***')
                 return None
         pic = self.driver.find_element_by_class_name("_9AhH0")
         time.sleep(randint(1,2))
@@ -424,36 +435,39 @@ class InstaBot():
 
     def hit(self,power):
         self.timepass=False
-        target = database.TargetList().get_users()
+        target = database.TargetList(self.username).get_users()
         #self.grab_mainacc_followers(self.mainuser)
-        hit = database.HitList().get_users()
+        hit = database.HitList(self.username).get_users()
         self.mainfollowers=hit
         power=randint(power-2,power+3)
         targets_hits=0
         for i in target[:power]:
             if i in hit:
-                print(f'{i} already in followers or hit list')
-                database.HitList().add(i)
-                database.TargetList().remove(i)
+                print("@@@                 ")
+                print(f'///\t{i} already in followers or hit list')
+                database.HitList(self.username).add(i)
+                database.TargetList(self.username).remove(i)
                 continue
             acc = self.account_details(i)
-            print(acc)
+            
             if acc == 'Private':
-                print('acc is private')
-                database.PrivateList().add(i)
-                database.TargetList().remove(i)
+                print("@@@                 ")
+                print(f'@@@ user @ {i} account is private')
+                database.PrivateList(self.username).add(i)
+                database.TargetList(self.username).remove(i)
             elif acc==None:
                 pass
             else:
                 if acc['ratio'] < 0.00:
-                    print('famed account ')
-                    database.FameList().add(i)
-                    database.TargetList().remove(i)
+                    print("@@@                 ")
+                    print(f'@@@ user @ {i} has famed account ')
+                    database.FameList(self.username).add(i)
+                    database.TargetList(self.username).remove(i)
                 else:
-                    database.HitList().add(i)  
-                    database.TargetList().remove(i)      
+                    database.HitList(self.username).add(i)  
+                    database.TargetList(self.username).remove(i)      
                 users = acc['post_likers']
-                database.TargetList().add(users)
+                database.TargetList(self.username).add(users)
             targets_hits+=1
         return targets_hits
 
@@ -481,14 +495,21 @@ class InstaBot():
                         heart.click()
                 
             except:
-                print('some error in home skipping count ')
+                print('$$$ Skipping some posts at home ')
         self.driver.get(self.home_url)
         return None
 
 class Controller:
-    def __init__(self):
-        self.obj=InstaBot()
-        self.total_targets=0
+    def __init__(self,username,password,targets,mode='normal'):
+        self.obj=InstaBot(username,password)
+        self.targets_hit=0
+        self.targets=targets
+        self.mode=mode
+        self.modes={
+            'light':self.light,
+            'normal':self.normal,
+            'power':self.power
+        }
     def Extratask(self):
         functions=[(self.obj.home()),(self.obj.exploretags()),(self.obj.GrabSuggested())]
         shuffle(functions)
@@ -497,45 +518,27 @@ class Controller:
         
 
     def light(self):        
-        self.total_targets+=self.obj.hit(power=8)
+        self.targets_hit+=self.obj.hit(power=8)
         self.Extratask()
+
     def normal(self):        
-        self.total_targets+=self.obj.hit(power=12)
+        self.targets_hit+=self.obj.hit(power=12)
         self.Extratask()
     
 
     def power(self):        
-        self.total_targets+=self.obj.hit(power=20)
+        self.targets_hit+=self.obj.hit(power=20)
         self.Extratask()
-    def start(self,targets):
+    def start(self):
         self.obj.login()
     
-        while self.total_targets < targets:
+        while self.targets_hit < self.targets:
             try:
-                self.normal()
+                self.modes[self.mode]()
             except:
-                print('some error passing')    
-        print(f'Total {self.total_targets} targets hitted')
+                print("@@@                 ")
+                print('@@@ ***\tSome error passing on\t***')    
+        print(f'@@@ Total {self.targets_hit} targets hitted')
         self.obj.quit()
 
-if __name__ == '__main__':
 
-    config_file_path = './config.ini'
-    logger_file_path = './bot.log'
-    config = init_config(config_file_path)
-    logger = get_logger(logger_file_path)
-    #bot = InstaBot()
-    # print(bot.absolute('36.2m'))
-    #bot.login()
-    #bot.hit()
-    # bot.grabpopup()
-    # database.TargetList().add('pankaj_nagil')
-    #bot.exploreController()
-    # tags()
-    #bot.home()Controller()
-
-    start=Controller()
-    start.start(100)
-    # bot.quit()
-    # bot.like_latest_posts('johngfisher', 2, like=True)
-# kholke_to_dekho
