@@ -30,6 +30,7 @@ class InstaBot():
         self.bool = {'commented':False,'likers':False,'likers_list':[]}
         self.timepass=False
         self.mainfollowers=[]
+        self.follow_count=0
 
 
     
@@ -124,7 +125,8 @@ class InstaBot():
 
             try:
                 WebDriverWait(self.driver, 5).until(check_difference_in_count)
-            except:
+            except Exception as e:
+                print(f"@@@       {e}          ")
                 break
 
         # print(user)
@@ -135,10 +137,14 @@ class InstaBot():
         return self.grabpopup()
 
     def GrabSuggested(self):
-        self.driver.get(self.suggested_user_url)
-        self.x_path = '//main//img[contains(@alt,profile)]'
-        database.TargetList(self.username).add(self.grabpopup())
-
+        try:
+            self.driver.get(self.suggested_user_url)
+            self.x_path = '//main//img[contains(@alt,profile)]'
+            users=self.grabpopup()
+            database.TargetList(self.username).add(users)
+        except Exception as e:
+            print(f"@@@       {e}          ")
+            print(f"@@@  ****/t error at GrabSuggested()\t****")
     def stories(self, username):
         self.driver.get(self.nav_user_url.format(username))
         self.wait.until(EC.presence_of_element_located(
@@ -168,8 +174,8 @@ class InstaBot():
             self.bool['likers']=True
             self.driver.find_element_by_xpath(r'//div[@role="presentation"]//button/*[name()="svg"][@aria-label="Close"]').click()
             return True
-        except:
-            print("@@@                 ")
+        except Exception as e:
+            print(f"@@@       {e}          ")
             print('@@@ ***\terror in grablikes xpath\t***')
         
 
@@ -180,7 +186,8 @@ class InstaBot():
                 self.driver.find_element_by_xpath(
                     r'//article//video')
                 return 'video'                
-            except:
+            except Exception as e:
+                print(f"@@@       {e}          ")
                 # WebDriverWait(self.driver, 5).until(EC.presence_of_element_located(
                 #     (By.XPATH, r'//article//button[text()=" others" or text()=" likes" or contains(text(),"like this")]')))
                 
@@ -196,7 +203,8 @@ class InstaBot():
                 time.sleep(randint(0,1))
                 driver.find_element_by_xpath(next_button).click()
                 return True
-            except:
+            except Exception as e:
+                print(f"@@@       {e}          ")
                 return False
         def load_more_comments(driver):
             count=0
@@ -206,7 +214,8 @@ class InstaBot():
                     driver.find_element_by_xpath(r'//article//button/*[name()="span"][contains(@aria-label,"more comments")]').click()
                     print('loading more comments')
                     count+=1
-                except:
+                except Exception as e:
+                    print(f"@@@       {e}          ")
                     break
 
         def like_comments(driver,hearts,liked_comment):     
@@ -312,8 +321,8 @@ class InstaBot():
                     else:
                         print("@@@                 ")
                         print('@@@ ***\tSomething is wrong with like_pic()\t***')
-            except:
-                print("@@@                 ")
+            except Exception as e:
+                print(f"@@@       {e}          ")
                 print('@@@ ***\tlink may be broken or timeout\t***')
                 return None
         pic = self.driver.find_element_by_class_name("_9AhH0")
@@ -355,7 +364,7 @@ class InstaBot():
                         following = str(self.driver.find_element_by_xpath(
                             '//li/a[text()=" following"]/span').get_attribute('title'))
                         following = following.replace(',', '')
-            except:
+            except Exception as e:
                 followers = str(self.wait.until(EC.presence_of_element_located(
                     (By.XPATH, '//li/span[text()=" followers"]/span'))).text).replace(',', '')
                 following = str(self.wait.until(EC.presence_of_element_located(
@@ -376,9 +385,25 @@ class InstaBot():
             self.mainfollowing=self.grabpopup()
                 
  
-        except:
+        except Exception as e:
+            print(f"@@@       {e}          ")
             return None
 
+    def follow_user(self,username,acctype):
+        try:
+            self.wait.until(EC.presence_of_element_located((By.XPATH, '//header//button[text()="Follow"]')))
+            follow=self.driver.find_element_by_xpath('//header//button[text()="Follow"]')
+            follow.click()
+            print("@@@                 ")
+            if acctype=='Private':print(f'@@@ ++++++ Follow request sent to {username} ++++++')
+            else:print(f'@@@ ++++++ Started following {username} ++++++')
+            self.follow_count+=1
+            return True
+        except Exception as e:
+            print(f"@@@       {e}          ")
+            print('@@@ ***\tSomething is wrong with Follow_user()\t***')
+            return False
+            
 
     def account_details(self, username):
         try:
@@ -401,7 +426,7 @@ class InstaBot():
                         following = str(self.driver.find_element_by_xpath(
                             '//li/a[text()=" following"]/span').get_attribute('title'))
                         following = following.replace(',', '')
-            except:
+            except Exception as e:
                 followers = str(self.wait.until(EC.presence_of_element_located(
                     (By.XPATH, '//li/span[text()=" followers"]/span'))).text).replace(',', '')
                 following = str(self.wait.until(EC.presence_of_element_located(
@@ -419,6 +444,8 @@ class InstaBot():
 
             ratio = int(following)/int(followers)
             # print('posts-', posts, ' followers-', followers," following-", following, "ratio", ratio)
+            if int(followers) <= int(following):self.follow_user(username,acctype)
+            else:print(f'@@@ ------ user {username} does not fit into follow request------')
             if acctype == 'Public':
                 if int(posts):
                     amount=randint(4,6)
@@ -430,8 +457,12 @@ class InstaBot():
                 return {'followers': followers, 'following': following, 'ratio': ratio,'post_likers':self.bool['likers_list']}
             else:
                 return acctype
-        except:
+        except Exception as e:
+            print(f"@@@       {e}          ")
+            print('@@@ ***\tSomething is wrong with Account_details()\t***')
+
             return None
+    
 
     def hit(self,power):
         self.timepass=False
@@ -460,7 +491,7 @@ class InstaBot():
             else:
                 if acc['ratio'] < 0.00:
                     print("@@@                 ")
-                    print(f'@@@ user @ {i} has famed account ')
+                    print(f'@@@ user @ {i} has famed account with {acc["followers"]} followers')
                     database.FameList(self.username).add(i)
                     database.TargetList(self.username).remove(i)
                 else:
@@ -469,6 +500,7 @@ class InstaBot():
                 users = acc['post_likers']
                 database.TargetList(self.username).add(users)
             targets_hits+=1
+            print('@@@ ????\t total users followed -{self.follow_count} \t????')
         return targets_hits
 
     def home(self):
@@ -494,7 +526,8 @@ class InstaBot():
                         time.sleep(randint(2,4))
                         heart.click()
                 
-            except:
+            except Exception as e:
+                print(f"@@@       {e}          ")
                 print('$$$ Skipping some posts at home ')
         self.driver.get(self.home_url)
         return None
@@ -535,8 +568,8 @@ class Controller:
         while self.targets_hit < self.targets:
             try:
                 self.modes[self.mode]()
-            except:
-                print("@@@                 ")
+            except Exception as e:
+                print(f"@@@       {e}          ")
                 print('@@@ ***\tSome error passing on\t***')    
         print(f'@@@ Total {self.targets_hit} targets hitted')
         self.obj.quit()
