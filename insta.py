@@ -138,10 +138,13 @@ class InstaBot():
 
     def GrabSuggested(self):
         try:
+           
             self.driver.get(self.suggested_user_url)
             self.x_path = '//main//img[contains(@alt,profile)]'
             users=self.grabpopup()
             database.TargetList(self.username).add(users)
+             print(f"@@@                 ")
+            print(f"@@@  &&&&/t Grabbing suggested\t&&&&")
         except Exception as e:
             print(f"@@@       {e}          ")
             print(f"@@@  ****/t error at GrabSuggested()\t****")
@@ -341,7 +344,7 @@ class InstaBot():
                 like_pic(self.driver,liked_comment,first=False)
                 count += 1
             else:
-                print(has_next_picture(self.driver))
+                print("@@@  ***\t No more posts found \t***")
                 break
         return True            
     
@@ -528,7 +531,7 @@ class InstaBot():
                 
             except Exception as e:
                 print(f"@@@       {e}          ")
-                print('$$$ Skipping some posts at home ')
+                print('@@@  $$$ \tSkipping some posts at home\t $$$ ')
         self.driver.get(self.home_url)
         return None
 
