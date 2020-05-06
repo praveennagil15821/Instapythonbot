@@ -143,7 +143,7 @@ class InstaBot():
             self.x_path = '//main//img[contains(@alt,profile)]'
             users=self.grabpopup()
             database.TargetList(self.username).add(users)
-             print(f"@@@                 ")
+            print(f"@@@                 ")
             print(f"@@@  &&&&/t Grabbing suggested\t&&&&")
         except Exception as e:
             print(f"@@@       {e}          ")
@@ -190,7 +190,7 @@ class InstaBot():
                     r'//article//video')
                 return 'video'                
             except Exception as e:
-                print(f"@@@       {e}          ")
+                
                 # WebDriverWait(self.driver, 5).until(EC.presence_of_element_located(
                 #     (By.XPATH, r'//article//button[text()=" others" or text()=" likes" or contains(text(),"like this")]')))
                 
@@ -207,7 +207,7 @@ class InstaBot():
                 driver.find_element_by_xpath(next_button).click()
                 return True
             except Exception as e:
-                print(f"@@@       {e}          ")
+                
                 return False
         def load_more_comments(driver):
             count=0
@@ -300,7 +300,7 @@ class InstaBot():
                             if randint(0,5) < 2:
                                 time.sleep(randint(1,2))
                                 like_button.click()
-                                like_comments(self.driver,comment_hearts,liked_comment)
+                                #like_comments(self.driver,comment_hearts,liked_comment)
 
                     elif is_img_video(driver)=='img':
                         if self.bool['likers']==False and not self.timepass:
@@ -313,20 +313,22 @@ class InstaBot():
                                     self.bool['commented']==True
                                     #comment kro bhaiya
                             else:
-                                like_comments(self.driver,comment_hearts,liked_comment)
+                                pass
+                                #like_comments(self.driver,comment_hearts,liked_comment)
                         else:
                             if randint(0,5) < 2:
                                 time.sleep(randint(1,2))
                                 like_button.click()
                                 #time.sleep(randint(1,2))
                                 if (len(comment_hearts)!=0):
-                                    like_comments(self.driver,comment_hearts,liked_comment)
+                                    pass
+                                    #like_comments(self.driver,comment_hearts,liked_comment)
                     else:
                         print("@@@                 ")
                         print('@@@ ***\tSomething is wrong with like_pic()\t***')
             except Exception as e:
-                print(f"@@@       {e}          ")
-                print('@@@ ***\tlink may be broken or timeout\t***')
+                print(f"@@@                 ")
+                print('@@@ *** {e}\tlink may be broken or timeout\t***')
                 return None
         pic = self.driver.find_element_by_class_name("_9AhH0")
         time.sleep(randint(1,2))
@@ -340,6 +342,7 @@ class InstaBot():
 
         while count <= amount:
             if has_next_picture(self.driver):
+                time.sleep(randint(1,2))
                 # //article//button/*[name()="span"][contains(@aria-label,'more comments')]   load more comment
                 like_pic(self.driver,liked_comment,first=False)
                 count += 1
@@ -392,15 +395,21 @@ class InstaBot():
             print(f"@@@       {e}          ")
             return None
 
-    def follow_user(self,username,acctype):
+    def follow_user(self):
         try:
-            self.wait.until(EC.presence_of_element_located((By.XPATH, '//header//button[text()="Follow"]')))
-            follow=self.driver.find_element_by_xpath('//header//button[text()="Follow"]')
-            follow.click()
-            print("@@@                 ")
-            if acctype=='Private':print(f'@@@ ++++++ Follow request sent to {username} ++++++')
-            else:print(f'@@@ ++++++ Started following {username} ++++++')
-            self.follow_count+=1
+            db=database.FollowList(self.username).get_users()
+            total=randint(3,4)
+            for user in db[:total]:
+                self.driver.get(self.nav_user_url.format(user))
+                self.wait.until(EC.presence_of_element_located((By.XPATH, '//header//button[text()="Follow"]')))
+                follow=self.driver.find_element_by_xpath('//header//button[text()="Follow"]')
+                time.sleep(randint(3,4))
+                follow.click()
+                print("@@@                 ")
+                print(f'@@@ ++++++ Follow request sent to {user} ++++++')
+                self.follow_count+=1
+                database.HitList(self.username).add(user)
+                database.FollowList(self.username).remove(user)
             return True
         except Exception as e:
             print(f"@@@       {e}          ")
@@ -447,7 +456,7 @@ class InstaBot():
 
             ratio = int(following)/int(followers)
             # print('posts-', posts, ' followers-', followers," following-", following, "ratio", ratio)
-            if int(followers) <= int(following):self.follow_user(username,acctype)
+            if int(followers) <= int(following):database.FollowList(self.username).add(username)
             else:print(f'@@@ ------ user {username} does not fit into follow request------')
             if acctype == 'Public':
                 if int(posts):
@@ -503,7 +512,8 @@ class InstaBot():
                 users = acc['post_likers']
                 database.TargetList(self.username).add(users)
             targets_hits+=1
-            print('@@@ ????\t total users followed -{self.follow_count} \t????')
+        print("@@@                 ")
+        print(f'@@@ ????\t total users followed -{self.follow_count} \t????')
         return targets_hits
 
     def home(self):
@@ -547,7 +557,7 @@ class Controller:
             'power':self.power
         }
     def Extratask(self):
-        functions=[(self.obj.home()),(self.obj.exploretags()),(self.obj.GrabSuggested())]
+        functions=[(self.obj.home()),(self.obj.follow_user()),(self.obj.exploretags()),(self.obj.GrabSuggested())]
         shuffle(functions)
         for func, args in functions:
             func(*args)
