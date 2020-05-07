@@ -398,7 +398,7 @@ class InstaBot():
     def follow_user(self):
         try:
             db=database.FollowList(self.username).get_users()
-            total=randint(3,4)
+            total=randint(4,6)
             for user in db[:total]:
                 self.driver.get(self.nav_user_url.format(user))
                 self.wait.until(EC.presence_of_element_located((By.XPATH, '//header//button[text()="Follow"]')))
@@ -458,9 +458,9 @@ class InstaBot():
             # print('posts-', posts, ' followers-', followers," following-", following, "ratio", ratio)
             if int(followers) <= int(following):database.FollowList(self.username).add(username)
             else:print(f'@@@ ------ user {username} does not fit into follow request------')
-            if acctype == 'Public':
+            if acctype == 'Public' and int(followers)<22000:
                 if int(posts):
-                    amount=randint(4,6)
+                    amount=randint(3,6)
                     functions=[(self.stories,[username]),(self.post,[amount])]
                     shuffle(functions)
                     for func, args in functions:
