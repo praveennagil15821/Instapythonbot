@@ -1,18 +1,21 @@
 from selenium import webdriver
+import chromedriver_autoinstaller
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 import time
+import pickle
 from utility_methods.utility_methods import *
 import urllib.request
 import os
 import notification,database
-
+from random import randint
 
 class InstaBot():
 
     def __init__(self, username=None, password=None):
+        chromedriver_autoinstaller.install()
         
         self.username = username or config['IG_AUTH']['USERNAME']
         self.password = password or config['IG_AUTH']['PASSWORD']
@@ -25,7 +28,23 @@ class InstaBot():
         self.driver = webdriver.Chrome()
         self.wait = WebDriverWait(self.driver, 15)
         self.count = 0
+        self.cookie_location='./cookie.txt'
+    def save_cookies(self,driver):    
+        pickle.dump(driver.get_cookies(), open(self.cookie_location, "wb"))
 
+
+    def load_cookies(self,driver, url=None):
+
+        cookies = pickle.load(open(self.cookie_location, "rb"))
+        driver.delete_all_cookies()
+        # have to be on a page before you can add any cookies, any page - does not matter which
+        driver.get(self.nav_user_url.format(self.mainuser) if url is None else url)
+        for cookie in cookies:
+            if isinstance(cookie.get('expiry'), float):#Checks if the instance expiry a float 
+                cookie['expiry'] = int(cookie['expiry'])# it converts expiry cookie to a int 
+            driver.add_cookie(cookie)
+    def load(self):
+        pass
     @insta_method
     def login(self):
         """
@@ -56,13 +75,16 @@ class InstaBot():
         login_btn.click()
         #notification.msg('Alert!','Login success full')
         # pop_up = self.driver.find_element_by_xpath('//div[text()="Know right away when people follow you or like and comment on your photos."]')
-        
-        WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.XPATH, r'//button[text() = "Not Now"]')))
-        
-        not_now_button = self.driver.find_element_by_xpath(
-                    '//button[text() = "Not Now"]')
-        not_now_button.click()
+        try:
 
+            WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, r'//button[text() = "Not Now"]')))
+            
+            not_now_button = self.driver.find_element_by_xpath(
+                        '//button[text() = "Not Now"]')
+            not_now_button.click()
+        except Exception as e:
+            e=str(e)
+            print(f"Exception at login for not now button as {e[:15:-1]}")
         #MessagePage='/direct/inbox/'
         #ExplorePage = '/explore/'
         #AccountActivity = '/accounts/activity/'
@@ -154,30 +176,71 @@ class InstaBot():
         else:            
             return acctype
 
-    def hit(self):
-        target=database.TargetList().get_users()
-        followers=self.account_details(self.mainuser)['followers']
-        hit=database.HitList().get_users()
-        followers.extend(hit)
-        for i in target[:3]:
-            if i in followers:
-                database.HitList().add(i)
-                database.TargetList().remove(i)
-                continue
-            acc=self.account_details(i)
-             
-            if acc=='Private':
-                print('acc is private')
-                database.PrivateList().add(i)
-                database.TargetList().remove(i)
-
-            else:
-                users=acc['followers']
-                users.extend(acc['following'])
-                database.TargetList().remove(i)
-                database.TargetList().add(users)
-                database.HitList().add(i)
+    def unfollow_user(self,remove):
+        try:
+            db=remove
+            total=10
+            count=0
+            for user in db[:total]:
+                count+=1
+                time.sleep(randint(3,5))
+                if count%5==0:time.sleep(randint(60,80))
+                self.driver.get(self.nav_user_url.format(user))
+                self.wait.until(EC.presence_of_element_located((By.XPATH, '//header//div/*[name()="span"][contains(@aria-label,"llow")]')))
+                follow=self.driver.find_element_by_xpath('//header//div/*[name()="span"][contains(@aria-label,"llow")]')
+                time.sleep(randint(1,2))
+                follow.click()
+                time.sleep(2)
+                self.wait.until(EC.presence_of_element_located((By.XPATH, '//div[@role="dialog"]//button[contains(text(),"Unfollow")]')))
+                unfollow=self.driver.find_element_by_xpath('//div[@role="dialog"]//button[contains(text(),"Unfollow")]')
+                time.sleep(randint(1,3))
+                unfollow.click()
                 
+                print("@@@                 ")
+                print(f'@@@ ----- UnFollowed {user} -----')
+               
+                
+            return True
+        except Exception as e:
+            print(f"@@@       {e}          ")
+            print('@@@ ***\tSomething is wrong with UnFollow_user()\t***')
+            return False
+
+    def hit(self):
+        try:
+            #target=database.TargetList().get_users()
+            data=self.account_details(self.mainuser)
+            followers=set(data['followers'])
+            following=set(data['following'])
+            remove=list(following-followers)
+            l=remove
+            l.sort()
+            print(l)
+
+            #self.unfollow_user(remove)
+            # hit=database.HitList().get_users()
+            # followers.extend(hit)
+            # for i in target[:3]:
+            #     if i in followers:
+            #         database.HitList().add(i)
+            #         database.TargetList().remove(i)
+            #         continue
+            #     acc=self.account_details(i)
+                
+            #     if acc=='Private':
+            #         print('acc is private')
+            #         database.PrivateList().add(i)
+            #         database.TargetList().remove(i)
+
+            #     else:
+            #         users=acc['followers']
+            #         users.extend(acc['following'])
+            #         database.TargetList().remove(i)
+            #         database.TargetList().add(users)
+            #         database.HitList().add(i)
+        except Exception as e:
+            e=str(e)
+            print(f"{e[:15:-1]}")        
 
              
         
@@ -192,11 +255,15 @@ if __name__ == '__main__':
     config = init_config(config_file_path)
     logger = get_logger(logger_file_path)
     bot=InstaBot('terabhaijitega@gmail.com','king15821')
-    #print(bot.absolute('36.2m'))
     bot.login()
-    #database.TargetList().add('pankaj_nagil')
-    bot.hit()
-    
-    #bot.quit()
+    while True:        
+        #print(bot.absolute('36.2m'))
+        ch=input("Enter any key to grab or 0 to exit:")
+        if ch=='0':
+            bot.quit()
+        else:
+            bot.hit()
+        #database.TargetList().add('pankaj_nagil')
+           
     #bot.like_latest_posts('johngfisher', 2, like=True)
 #kholke_to_dekho
